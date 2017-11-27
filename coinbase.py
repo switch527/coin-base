@@ -100,7 +100,7 @@ class CoinBase:
         Base.metadata.create_all(db)
         Base.metadata.bind = db
         self.maker = sessionmaker(bind=db)
-        self.commit_every = 10
+        self.commit_every = 1000
         self.api = CoinAPI(symbols)
         self.running = True
         self.queue = Queue()
@@ -118,7 +118,7 @@ class CoinBase:
                 _type, datum = self.queue.get()
                 session.add(self.models[_type](**datum))
                 log.debug('Added %s for %s to database', _type, datum.get('symbol', 'None'))
-                if count % self.commit_every == 0:
+                if count and count % self.commit_every == 0:
                     session.commit()
                     log.debug('Successfully committed addition')
                 self.queue.task_done()

@@ -59,7 +59,7 @@ async def backend(handler):
 
 
 if __name__ == '__main__':
-    ADDRESS = '192.168.1.46', 9900
+    ADDRESS = 'localhost', 9900
     serve(address=ADDRESS, log_modules=['aioserverplus', 'coinbase'],
           handler=CoinHandler, handler_args=({},),
           backend=backend)
