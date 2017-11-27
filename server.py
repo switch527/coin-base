@@ -14,11 +14,11 @@ class CoinHandler(Handler):
     def __init__(self, handlers, *args, **kwargs):
         super(CoinHandler, self).__init__(handlers, *args, **kwargs)
         self.db = CoinBase("sqlite:///coinData.db",
-                           ["BTCUSD"#, "LTCUSD", "ETHUSD", "EDOUSD", "BCCUSD"#,
-                            #"ETCUSD", "RRTUSD", "ZECUSD", "XMRUSD", "DSHUSD",
-                            #"BCUUSD", "XRPUSD", "IOTUSD", "EOSUSD", "SANUSD",
-                            #"BCHUSD", "NEOUSD", "ETPUSD", "QTMUSD", "BT1USD",
-                            #"AVTUSD", "BTGUSD", "DATUSD", "OMGUSD", "BT2USD"
+                           ["BTCUSD", "LTCUSD", "ETHUSD", "EDOUSD", "BCCUSD",
+                            "ETCUSD", "RRTUSD", "ZECUSD", "XMRUSD", "DSHUSD",
+                            "BCUUSD", "XRPUSD", "IOTUSD", "EOSUSD", "SANUSD",
+                            "BCHUSD", "NEOUSD", "ETPUSD", "QTMUSD", "BT1USD",
+                            "AVTUSD", "BTGUSD", "DATUSD", "OMGUSD", "BT2USD"
                             ])
 
     async def handle_request(self, request):
@@ -59,7 +59,7 @@ async def backend(handler):
 
 
 if __name__ == '__main__':
-    ADDRESS = 'localhost', 9900
+    ADDRESS = '192.168.1.46', 9900
     serve(address=ADDRESS, log_modules=['aioserverplus', 'coinbase'],
           handler=CoinHandler, handler_args=({},),
           backend=backend)
