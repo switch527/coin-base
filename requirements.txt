@@ -1,0 +1,3 @@
+sqlalchemy>=1.1
+btfx_trader>=0.1
+aioserverplus>=0.1
