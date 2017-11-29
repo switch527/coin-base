@@ -2,6 +2,7 @@ import asyncio
 import json
 from concurrent.futures import ThreadPoolExecutor
 from datetime import datetime, timedelta
+from threading import Lock
 from sqlalchemy import inspect
 from aioserverplus import Handler, serve
 
@@ -13,13 +14,14 @@ class CoinHandler(Handler):
 
     def __init__(self, handlers, *args, **kwargs):
         super(CoinHandler, self).__init__(handlers, *args, **kwargs)
+        self.lock = Lock()
         self.db = CoinBase("sqlite:///coinData.db",
                            ["BTCUSD", "LTCUSD", "ETHUSD", "EDOUSD", "BCCUSD",
                             "ETCUSD", "RRTUSD", "ZECUSD", "XMRUSD", "DSHUSD",
                             "BCUUSD", "XRPUSD", "IOTUSD", "EOSUSD", "SANUSD",
                             "BCHUSD", "NEOUSD", "ETPUSD", "QTMUSD", "BT1USD",
                             "AVTUSD", "BTGUSD", "DATUSD", "OMGUSD", "BT2USD"
-                            ])
+                            ], self.lock)
 
     async def handle_request(self, request):
         symbols = [(i.upper() + "USD") if not i.endswith("USD") else i for i in request.params['symbols'].split(',')]
@@ -35,18 +37,19 @@ class CoinHandler(Handler):
 
         model = self.db.models[_type]
         keys = [i for i in inspect(model).columns.keys() if i not in ['_id']]
-        session = self.db.maker()
-        query = session.query(model).\
-            filter(model.symbol.in_(symbols)).\
-            filter(model.time >= _since).\
-            filter(model.time <= _to).\
-            order_by(model.time)
-        res = []
-        for i, row in enumerate(query):
-            data = {q: getattr(row, q) for q in keys}
-            data.update(time=data['time'].timestamp())
-            res.append(data)
-        session.close()
+        with self.lock:
+            session = self.db.maker()
+            query = session.query(model).\
+                filter(model.symbol.in_(symbols)).\
+                filter(model.time >= _since).\
+                filter(model.time <= _to).\
+                order_by(model.time)
+            res = []
+            for i, row in enumerate(query):
+                data = {q: getattr(row, q) for q in keys}
+                data.update(time=data['time'].timestamp())
+                res.append(data)
+            session.close()
         return json.dumps({'data': res})
 
 

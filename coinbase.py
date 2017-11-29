@@ -84,7 +84,8 @@ class CoinBase:
 
     }
 
-    def __init__(self, path, symbols, log_level='INFO'):
+    def __init__(self, path, symbols, lock, log_level='INFO'):
+        self.lock = lock
         # setup logging
         for _log in [logging.getLogger('btfx_trader'), log]:
             _log.setLevel(log_level)
@@ -114,16 +115,22 @@ class CoinBase:
         while self.running:
             session = self.maker()
             count = 0
+            added = 0
             while not self.queue.empty():
                 _type, datum = self.queue.get()
                 session.add(self.models[_type](**datum))
+                added += 1
                 log.debug('Added %s for %s to database', _type, datum.get('symbol', 'None'))
                 if count and count % self.commit_every == 0:
-                    session.commit()
+                    with self.lock:
+                        session.commit()
+                        added = 0
                     log.debug('Successfully committed addition')
                 self.queue.task_done()
                 count += 1
-            session.commit()
+            if added:
+                with self.lock:
+                    session.commit()
             session.close()
             time.sleep(1)
 
